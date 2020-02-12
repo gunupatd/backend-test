@@ -16,3 +16,5 @@ java -cp backendtest-1.0-SNAPSHOT-jar-with-dependencies.jar com.revolut.test.ini
 ####### Note ########
 
 1. The app is configured to run on the localhost on port 9950
+2. The curl commands to test the app are available under
+ https://github.com/gunupatd/backend-test/tree/master/release-notes/curl_commands.txt
