@@ -1,5 +1,6 @@
 package com.revolut.test.service;
 
+import com.revolut.test.constants.TransactionStatus;
 import com.revolut.test.entity.Account;
 import com.revolut.test.entity.Transaction;
 import com.revolut.test.exception.InSufficientBalanceException;
@@ -45,14 +46,23 @@ public class TransactionService implements Service<Transaction>{
             throw new InSufficientBalanceException("Amount to Transfer cannot be negative");
 
         fromAccount.setBalance(fromAccount.getBalance() - transaction.getTransferAmt());
-
         toAccount.setBalance(toAccount.getBalance() + transaction.getTransferAmt());
 
-        accountService.update(fromAccount);
 
-        accountService.update(toAccount);
-
-        transactionRepository.create(transaction);
+        // Not the most efficient way to rollback. Because it is inmemory
+        try {
+            accountService.update(fromAccount);
+            accountService.update(toAccount);
+            transactionRepository.create(transaction);
+        }catch(Exception exception){
+            // start to rollback
+            fromAccount.setBalance(fromAccount.getBalance() + transaction.getTransferAmt());
+            toAccount.setBalance(toAccount.getBalance() - transaction.getTransferAmt());
+            transaction.setStatus(TransactionStatus.FAILED);
+            accountService.update(fromAccount);
+            accountService.update(toAccount);
+            transactionRepository.create(transaction);
+        }
 
     }
 
